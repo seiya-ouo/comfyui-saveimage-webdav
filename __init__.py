@@ -73,6 +73,7 @@ class SaveImageWebDAV:
         self.temp_dir = folder_paths.get_temp_directory()
         self.type = "temp"
         self.prefix_append = "_" + "".join(random.choice(string.ascii_letters) for _ in range(6))
+        self._used_remote: set[str] = set()   # 进程内已用过的远端路径，防同秒覆盖
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -135,7 +136,17 @@ class SaveImageWebDAV:
             pil.save(local_path, pnginfo=meta, compress_level=4)
 
             # 2) 上传 WebDAV
-            remote_path = f"{remote_dir}/{file_name}"
+            # 远端文件名带时间戳：temp 文件被清理后本地计数器会重置，
+            # 若沿用原名会覆盖上一张图，这里保证每次运行都是新文件。
+            stem, suffix = os.path.splitext(file_name)
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            remote_name = f"{stem}_{ts}{suffix}"
+            n = 2
+            while f"{remote_dir}/{remote_name}" in self._used_remote:
+                remote_name = f"{stem}_{ts}_{n}{suffix}"
+                n += 1
+            self._used_remote.add(f"{remote_dir}/{remote_name}")
+            remote_path = f"{remote_dir}/{remote_name}"
             uploaded = False
             try:
                 status = dav.put_file(remote_path, local_path, content_type="image/png")

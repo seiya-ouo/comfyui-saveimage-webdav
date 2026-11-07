@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-saveimage-webdav"
+version = "1.0.0"
+description = "ComfyUI node: save generated images straight to WebDAV by date, without leaving files in output/"
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/seiya-ouo/comfyui-saveimage-webdav"
+
+[tool.comfy]
+DisplayName = "SaveImage WebDAV"
+Icon = ""
